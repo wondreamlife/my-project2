@@ -1,0 +1,77 @@
+#include "I2Cdev.h"
+#define voice 400
+#define sensorPin 8
+#define buzzer_pin 6
+#include <SHT2x.h>
+int state;
+int voice_data;
+long time, timer;
+float sensor_tem;
+float tem = 15;
+
+boolean buzzer_speak;
+
+boolean add;
+int i = 200;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(buzzer_pin, OUTPUT);
+  pinMode(sensorPin, INPUT);
+}
+
+void loop() {
+  sensor_tem = SHT2x.GetTemperature();
+  state = digitalRead(sensorPin);
+  Serial.println(sensor_tem);
+  if (sensor_tem > tem)
+  {
+    Serial.println("1");
+    if (millis() - time > 0 )
+    {
+      Serial.println("2");
+      sensor_tem = SHT2x.GetTemperature();
+      Serial.println(sensor_tem);
+      if (sensor_tem > tem)
+      {
+        Serial.println("3");
+        buzzer_speak = true;
+        i = 200;
+      }
+      time = millis();
+    }
+  }
+  else
+  time = millis();
+  if (state == 1)
+  {
+    delay(200);
+    buzzer_speak = false;
+    time = millis();
+  }
+  if (buzzer_speak)
+    buzzer();
+  else
+    noTone(buzzer_pin);
+}
+
+void buzzer()
+{
+  if (millis() - timer > 0)
+  {
+    if (!add)
+    {
+      i++;
+      if (i >= 800)
+        add = true;
+    }
+    else
+    {
+      i--;
+      if (i <= 200)
+        add = false;
+    }
+    tone(buzzer_pin, i);
+    timer = millis();
+  }
+}
